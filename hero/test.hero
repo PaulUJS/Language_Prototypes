@@ -1,0 +1,25 @@
+#
+
+PRIMITIVE TYPES
+----------------
+
+Int
+Float
+String
+Char
+Bool
+
+EXPRESSION TYPES
+-----------------
+
+BINARY (number, operator, number)
+LITERAL ( number )
+
+
+#
+
+"hello world"
+true
+false
+20 + 10 * 8 
+20.5 + 1.5 + 5.3

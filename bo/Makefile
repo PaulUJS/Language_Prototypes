@@ -1,4 +1,4 @@
-OBJS = main.c 
+OBJS = main.c Common/* Chunk/* Memory/* Debug/* Value/* VM/*
 
 CC = gcc
 
