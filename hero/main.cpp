@@ -11,6 +11,8 @@ int main()
     
     Parser parser(tokens);
     auto expr = parser.Parse();
+
+    std::cout << "PARSE ENDED \n";
     for (unsigned int i = 0; i < expr.size(); i++)
     {
         expr[i]->Print();

@@ -38,6 +38,8 @@ enum TokenType
     GREATER_EQUAL = 24,
     LESS = 25,
     LESS_EQUAL = 26,
+    
+    IDENTIFIER = 27,
 
     EOF_TOK = 0,
 };
@@ -62,6 +64,7 @@ class Lexer
         bool writing;
 
         void Match_Token(std::string& str);
+        bool Match_Identifier(std::string& str);
         void Add_Token(TokenType token);
         void Add_Token(TokenType token, int num);
         void Add_Token(TokenType token, float num);

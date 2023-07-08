@@ -37,13 +37,15 @@ std::vector<Token> Lexer::Tokenize()
                 case ';':
                     if (!writing)
                     {
-                        Match_Token(buffer);
+                        if (Match_Identifier(buffer) == false)
+                            Match_Token(buffer);
                         Add_Token(SEMICOLON);
                     }
                     break;
                 case '\n':
                     if (!writing)
-                        Match_Token(buffer);
+                        if (Match_Identifier(buffer) == false)
+                            Match_Token(buffer);
                     line++;
                     break;
                 case '#':
@@ -60,7 +62,8 @@ std::vector<Token> Lexer::Tokenize()
                     break;
                 case ' ':
                     if (!writing)
-                        Match_Token(buffer);
+                        if (Match_Identifier(buffer) == false)
+                            Match_Token(buffer);
                     else 
                         buffer.append(1, ch);
                     break;
@@ -70,9 +73,26 @@ std::vector<Token> Lexer::Tokenize()
             }
         }
     }
+    if (Match_Identifier(buffer) == false)
+        Match_Token(buffer);
     Add_Token(EOF_TOK);
     fin.close();
     return tokens;
+}
+
+bool Lexer::Match_Identifier(std::string& str)
+{
+    if (!tokens.empty())
+    {
+        TokenType tok = tokens.back().tokentype;
+        if (tok == INT || tok == FLOAT || tok == STRING || tok == BOOL)
+        {
+            Add_Token(IDENTIFIER, str);
+            str.clear();
+            return true;
+        }
+    }
+    return false;
 }
 
 void Lexer::Match_Token(std::string& str)
@@ -128,7 +148,6 @@ void Lexer::Match_Token(std::string& str)
             }
             catch (...)
             {
-
             }
         }
         else if (str.find(".") != std::string::npos)
@@ -141,7 +160,6 @@ void Lexer::Match_Token(std::string& str)
             }
             catch (...)
             {
-
             }
         }
     }

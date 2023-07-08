@@ -1,0 +1,1 @@
+/home/zetro/langs/z/target/debug/z: /home/zetro/langs/z/src/ast.rs /home/zetro/langs/z/src/debug.rs /home/zetro/langs/z/src/env.rs /home/zetro/langs/z/src/interpreter.rs /home/zetro/langs/z/src/lexer.rs /home/zetro/langs/z/src/main.rs /home/zetro/langs/z/src/parser.rs

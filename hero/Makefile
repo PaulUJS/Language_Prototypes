@@ -2,7 +2,7 @@ OBJS = main.cpp Lexer/* AST/* Parser/*
 
 CC = g++
 
-FLAGS = -W
+FLAGS = -w
 
 OUT = a
 

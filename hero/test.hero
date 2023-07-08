@@ -18,8 +18,5 @@ LITERAL ( number )
 
 #
 
-"hello world"
-true
-false
-20 + 10 * 8 
-20.5 + 1.5 + 5.3
+10 + 20 + 30
+

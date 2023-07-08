@@ -28,7 +28,7 @@ class BinaryExpr : public Expression
 
     public:
         BinaryExpr(std::unique_ptr<Expression> left, TokenType& op, std::unique_ptr<Expression> right)
-            : left(std::move(left)), op(op), right(std::move(right)) { Evaluate(); }
+            : left(std::move(left)), op(op), right(std::move(right)) { /* Evaluate(); */ }
         ~BinaryExpr() {}
 
         void Print() override { left->Print(); right->Print(); }
@@ -40,76 +40,81 @@ class UnaryExpr : public Expression
 {
     private:
         TokenType op;
+        TokenType objtype;
         std::unique_ptr<Expression> right;
 
     public:
         UnaryExpr(TokenType op, std::unique_ptr<Expression> right)
-            : op(op), right(std::move(right)) {}
+            : op(op), right(std::move(right)), objtype(INT) {}
         ~UnaryExpr() {}
 
         void Print() override { right->Print(); }
         std::variant<int, float, std::string, bool> Evaluate() override {}
-        TokenType Get_Type() override { return INT_LIT; }
+        TokenType Get_Type() override { return objtype; }
 };
 
 class IntExpr : public Expression 
 {
     private:
         int val;
+        TokenType objtype;
 
     public:
         IntExpr(int val)
-            : val(val) { }
+            : val(val), objtype(INT) { }
         ~IntExpr() {}
 
         void Print() override { std::cout << "INT VALUE " << val << "\n"; }
         std::variant<int, float, std::string, bool> Evaluate() override; 
-        TokenType Get_Type() override { return INT; }
+        TokenType Get_Type() override { return objtype; }
 };
 
 class FloatExpr : public Expression
 { 
     private:
         float val;
+        TokenType objtype;
 
     public:
         FloatExpr(float val)
-            : val(val) { }
+            : val(val), objtype(FLOAT) { }
         ~FloatExpr() {}
 
         void Print() override { std::cout << "FLOAT VALUE " << val << "\n"; }
         std::variant<int, float, std::string, bool> Evaluate() override;
-        TokenType Get_Type() override { return FLOAT; }
+        TokenType Get_Type() override { return objtype; }
 };
 
 class StringExpr : public Expression 
 {
     private:
         std::string val;
+        TokenType objtype;
 
     public:
         StringExpr(std::string val)
-            : val(val) { }
+            : val(val), objtype(STRING) { }
         ~StringExpr() {}
 
         void Print() override { std::cout << "STRING VALUE " << val << "\n"; }
         std::variant<int, float, std::string, bool> Evaluate() override;
-        TokenType Get_Type() override { return STRING; }
+        TokenType Get_Type() override { return objtype; }
 };
 
 class BoolExpr : public Expression 
 {
     private:
         bool val;
+        TokenType objtype;
 
     public:
         BoolExpr(bool val)
-            : val(val) {}
+            : val(val), objtype(BOOL) {}
         ~BoolExpr() {}
 
         void Print() override { std::cout << "BOOL VALUE " << val << "\n"; }
         std::variant<int, float, std::string, bool> Evaluate() override;
-        TokenType Get_Type() override { return BOOL; }
+        TokenType Get_Type() override { return objtype; }
 };
 
 class NullExpr : public Expression 
@@ -126,3 +131,4 @@ class NullExpr : public Expression
         std::variant<int, float, std::string, bool> Evaluate() override {}
         TokenType Get_Type() override { return EOF_TOK; }
 };
+
