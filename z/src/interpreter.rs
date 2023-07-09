@@ -57,6 +57,36 @@ impl Interpreter
             {
                 todo!();
             },
+            IfStatement { cond, then, other } => 
+            {
+                match self.execute_expr_stmt(cond) 
+                {
+                    Ok(expr) => 
+                    {
+                       match expr 
+                       {
+                           LiteralType::BoolLit(true) => 
+                           {
+                               match self.execute_block_stmt(then)
+                               {
+                                   Ok(val) => return Ok(val),
+                                   Err(msg) => return Err(msg),
+                               }                        
+                           },
+                           LiteralType::BoolLit(false) =>
+                           {
+                               match self.execute_block_stmt(other)
+                               {
+                                   Ok(val) => return Ok(val),
+                                   Err(msg) => return Err(msg),
+                               }
+                           },
+                           _ => return Err(format!("ERROR DURING IF STATEMENT")),
+                       }
+                    },
+                    Err(msg) => return Err(msg),
+                }
+            },
             _ => todo!(),
         }
     }
@@ -79,7 +109,7 @@ impl Interpreter
         }
     }
 
-    fn execute_block_stmt(self: &Self, expr: &mut Box<Expression>) -> Result<LiteralType, String>
+    fn execute_block_stmt(self: &Self, expr: &mut Box<Statement>) -> Result<LiteralType, String>
     {
         match expr.evaluate()
         {

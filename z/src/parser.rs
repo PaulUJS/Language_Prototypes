@@ -54,7 +54,7 @@ impl Parser
         if self.debug.contains_error()
         {
             self.debug.output_errors();
-            return Err("COMPILETIME ERROR: Program failed".to_string());
+            return Err("COMPTIME ERROR: Program failed".to_string());
         }
         return Ok(statements);
     }
@@ -72,7 +72,11 @@ impl Parser
         match self.statement()
         {
             Ok(expr) => return Ok(expr),
-            Err(msg) => return Err(msg),
+            Err(msg) => 
+            {
+                self.synchronize();
+                return Err(msg);
+            },
         }
     }
 
@@ -110,19 +114,83 @@ impl Parser
         }
     }
 
+    fn synchronize(self: &mut Self) 
+    {
+        self.advance();
+        while !self.is_at_end()
+        {
+            let prev = self.previous().tokentype;
+            if prev == SemiColon || prev == End || prev == Colon
+            {
+                return;
+            }
+            let tok = self.peek().tokentype;
+            if tok == Def || tok == Let || tok == For || tok == If || tok == Return 
+            {
+                return;
+            }
+            self.advance();
+        }
+        return;
+    }
+
     fn statement(self: &mut Self) -> Result<Statement, String>
     {
-        if matchtokens!(self, Colon)
+        if matchtokens!(self, If)
         {
-            match self.block_statement()
+            match self.if_statement()
             {
                 Ok(expr) => return Ok(expr),
-                Err(msg) => return Err(msg),
+                Err(msg) => 
+                {
+                    return Err(msg);
+                },
             }
         }
         match self.expr_statement()
         {
             Ok(val) => return Ok(val),
+            Err(msg) => return Err(msg),
+        }
+    }
+
+    fn if_statement(self: &mut Self) -> Result<Statement, String>
+    {
+        match self.expression()
+        {
+            Ok(expr) => 
+            {
+                match self.consume(Colon, format!("PARSER ERROR: Expected ':' after If Statement Clause on line {}", self.line))
+                {
+                    Ok(_) =>
+                    {
+                        match self.block_statement()
+                        {
+                            Ok(stmt) => 
+                            {
+                                if matchtokens!(self, Else)
+                                {
+                                    match self.consume(Colon, format!("PARSER ERROR: Expected ':' after Else Statement Clause on line {}", self.line))
+                                    {
+                                        Ok(_) => 
+                                        {
+                                            match self.block_statement()
+                                            {
+                                                Ok(else_stmt) => return Ok(IfStatement { cond: Box::from(expr), then: Box::from(stmt), other: Box::from(else_stmt) }),
+                                                Err(msg) => return Err(msg),
+                                            }
+                                        },
+                                        Err(msg) => return Err(msg),
+                                    }
+                                }
+                                return Err(format!("PARSER ERROR: Expected Else Statement after If Statement on line {}", self.line));
+                            },
+                            Err(msg) => return Err(msg),
+                        }
+                    },
+                    Err(msg) => return Err(msg),
+                }
+            },
             Err(msg) => return Err(msg),
         }
     }
@@ -151,14 +219,14 @@ impl Parser
             match self.declaration()
             {
                 Ok(stmt) => stmts.push(Box::from(stmt)),
-                Err(msg) => todo!(),
+                Err(msg) => return Err(msg),
             }
         }
         match self.consume(End, format!("PARSER ERROR: Expected 'end' after block on line {}", self.line))
         {
             Ok(val) => return Ok(BlockStatement { statements: stmts }),
             Err(msg) => return Err(msg),
-        }
+        }    
     }
 
     fn expression(self: &mut Self) -> Result<Expression, String>
@@ -292,11 +360,60 @@ impl Parser
                 Err(msg) => return Err(msg),
             }
         }
-        match self.primary()
+        match self.call()
         {
             Ok(val) => return Ok(val),
             Err(msg) => return Err(msg),
         };
+    }
+
+    fn call(self: &mut Self) -> Result<Expression, String>
+    {
+        match self.primary()
+        {
+            Ok(expr) =>
+            {
+                loop
+                {
+                    if matchtokens!(self, LeftParen)
+                    {
+                        match self.finish_call(expr)
+                        {
+                            Ok(res) => return Ok(res),
+                            Err(msg) => return Err(msg),
+                        }
+                    }
+                    return Ok(expr);
+                }
+            },
+            Err(msg) => return Err(msg),
+        }
+    }
+
+    fn finish_call(self: &mut Self, callee: Expression) -> Result<Expression, String>
+    {
+        let mut args = vec![];
+        while !self.check(RightParen)
+        {
+            match self.expression()
+            {
+                Ok(expr) => args.push(Box::from(expr)),
+                Err(msg) => return Err(msg),
+            }
+            if self.check(Comma)
+            {
+                match self.expression()
+                {
+                    Ok(expr) => args.push(Box::from(expr)),
+                    Err(msg) => return Err(msg),
+                }
+            }
+        }
+        match self.consume(RightParen, format!("PARSER ERROR: Expected ')' after function arguments on line {}", self.line))
+        {
+            Ok(paren) => return Ok(Call { callee: Box::from(callee), paren: paren, args: args }),
+            Err(msg) => return Err(msg),
+        }
     }
 
     fn primary(self: &mut Self) -> Result<Expression, String>
@@ -345,7 +462,7 @@ impl Parser
                 _ => return Err(format!("PARSER ERROR: Unexpected variable identifier on line {}", tok.line)),
             }
         }
-        return Err("PARSE LOOP ERROR".to_string());
+        return Err(format!("PARSER ERRROR: Unknown token on line {}", self.line));
     }
 
     fn consume(self: &mut Self, token: TokenType, msg: String) -> Result<Token, String>
@@ -390,7 +507,9 @@ impl Parser
         {
             self.index += 1;
         }
-        return self.previous();
+        let tok = self.previous();
+        self.line = tok.line;
+        return tok;
     }
 
     fn is_at_end(self: &mut Self) -> bool 
@@ -402,5 +521,6 @@ impl Parser
     {
         return self.tokens[self.index].clone();
     }
+
 }
 

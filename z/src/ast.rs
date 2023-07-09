@@ -12,6 +12,7 @@ pub enum Expression
     Grouping { expr: Box<Expression> },
     Assign { name: Token, value: Box<Expression> },
     Variable { name: Token, },
+    Call { callee: Box<Expression>, paren: Token, args: Vec<Box<Expression>> },
 }
 
 impl Expression
@@ -93,6 +94,8 @@ pub enum Statement
     ExprStatement { expr: Box::<Expression> },
     VarStatement { name: Token,  value: Box<Expression> },
     BlockStatement { statements: Vec<Box<Statement>> },
+    IfStatement { cond: Box::<Expression>, then: Box::<Statement>, other: Box::<Statement> },
+    FunctionStatement { name: Token, params: Vec<Token>, body: Vec<Box::<Statement>>},
 }
 
 impl Statement
@@ -117,7 +120,24 @@ impl Statement
                     Err(msg) => return Err(msg),
                 }
             },
-            Self::BlockStatement { statements } => todo!(),
+            Self::BlockStatement { statements } => 
+            {
+                let mut res = IntLit(0);
+                for x in statements
+                {
+                    match x.evaluate()
+                    {
+                        Ok(val) => 
+                        {
+                            res = val.clone();
+                            println!("{:#?}", val);
+                        },
+                        Err(msg) => return Err(msg),
+                    }
+                }
+                return Ok(res);
+            },
+            _ => todo!(),
         }
     }
 }

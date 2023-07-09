@@ -241,7 +241,7 @@ impl Lexer
             return;
         }
         self.advance();
-        let temp: String = self.source.chars().skip(self.start).take(self.current - self.start).collect();
+        let temp: String = self.source.chars().skip(self.start + 1).take(self.current - 2 - self.start).collect();
         self.add_token(StrTok, Some(StrLit(temp)));
     }
 

@@ -36,6 +36,7 @@ fn main()
     {
         Ok(val) => 
         {
+            println!("PARSING OVER");
             let mut interpreter = Interpreter::new();
             for mut x in val 
             {
